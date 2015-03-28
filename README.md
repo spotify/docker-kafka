@@ -5,7 +5,7 @@ This repository provides everything you need to run Kafka in Docker.
 
 Why?
 ---
-The main problem with running Kafka in Docker is that it depends on Zookeeper.
+The main hurdle of running Kafka in Docker is that it depends on Zookeeper.
 Compared to other Kafka docker images, this one runs both Zookeeper and Kafka
 in the same container. This means:
 
@@ -15,8 +15,19 @@ in the same container. This means:
 Run
 ---
 
-    docker run -P spotify/kafka
+```bash
+docker run -p 2181:2181 -p 9092:9092 --env ADVERTISED_HOST=`boot2docker ip` --env ADVERTISED_PORT=9092 spotify/kafka
+```
 
+```bash
+export KAFKA=`boot2docker ip`:9092
+kafka-console-producer.sh --broker-list $KAFKA --topic test
+```
+
+```bash
+export ZOOKEEPER=`boot2docker ip`:2181
+kafka-console-consumer.sh --zookeeper $ZOOKEEPER --topic test
+```
 
 In the box
 ---
@@ -36,12 +47,9 @@ Build from Source
     docker build -t spotify/kafka kafka/
 
 
-Notes
+Todo
 ---
-Things are still under development:
 
 * Not particularily optimzed for startup time.
 * Better docs
-* We'd like to be able to configure more things.
-* There should be a prober for Helios.
 
