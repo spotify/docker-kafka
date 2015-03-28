@@ -1,6 +1,6 @@
 # Kafka and Zookeeper
 
-FROM dockerfile/java:oracle-java7
+FROM java:openjdk-8-jre
 
 ENV DEBIAN_FRONTEND noninteractive
 
