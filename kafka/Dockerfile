@@ -1,6 +1,6 @@
 # Kafka and Zookeeper
 
-FROM dockerfile/java:oracle-java7
+FROM java:openjdk-8-jre
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
     apt-get install -y zookeeper wget supervisor dnsutils && \
     rm -rf /var/lib/apt/lists/* && \
-    wget -q http://mirror.gopotato.co.uk/apache/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz -O /tmp/kafka_2.8.0-0.8.1.1.tgz && \
+    wget -q http://apache.mirrors.spacedump.net/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz -O /tmp/kafka_2.8.0-0.8.1.1.tgz && \
     tar xfz /tmp/kafka_2.8.0-0.8.1.1.tgz -C /opt && \
     rm /tmp/kafka_2.8.0-0.8.1.1.tgz
 
