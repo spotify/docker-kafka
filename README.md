@@ -31,7 +31,7 @@ kafka-console-consumer.sh --zookeeper $ZOOKEEPER --topic test
 
 In the box
 ---
-* **spotify/kafka**
+* **pbxme/kafka**
 
   The docker image with both Kafka and Zookeeper. Built from the `kafka`
   directory.
@@ -39,7 +39,7 @@ In the box
 Public Builds
 ---
 
-https://registry.hub.docker.com/u/spotify/kafka/
+https://registry.hub.docker.com/u/pbxme/kafka/
 
 Build from Source
 ---
@@ -50,6 +50,6 @@ Build from Source
 Todo
 ---
 
-* Not particularily optimzed for startup time.
+* Not particularily optimised for startup time.
 * Better docs
 
