@@ -44,7 +44,7 @@ https://registry.hub.docker.com/u/pbxme/kafka/
 Build from Source
 ---
 
-    docker build -t spotify/kafka kafka/
+    docker build -t pbxme/kafka kafka/
 
 
 Todo
