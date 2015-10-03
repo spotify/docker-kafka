@@ -52,6 +52,19 @@ docker run -p 2181:2181 -p 9092:9092 \
     spotify/kafkaproxy
 ```
 
+Running 2-node cluster
+----------------------
+
+Both brokers are running in the same container on ports `9092` and `9093`.
+
+```bash
+docker build -t kafkacluster kafkacluster/
+docker run -p 2181:2181 -p 9092:9092 -p 9093:9093 --env ADVERTISED_HOST=`boot2docker ip` kafkacluster
+```
+
+Note that you must provide proper `ADVERTISED_HOST` env variable. However avoid
+setting `ADVERTISED_PORT`, since it may not play well with current 2-node setup.
+
 In the box
 ---
 * **spotify/kafka**
@@ -63,6 +76,10 @@ In the box
 
   The docker image with Kafka, Zookeeper and a Kafka 7 proxy that can be
   configured with a set of topics to mirror.
+
+  * **spotify/kafkacluster**
+
+    The docker image with cluster of 2 Kafka brokers and Zookeeper.
 
 Public Builds
 ---
@@ -76,10 +93,10 @@ Build from Source
 
     docker build -t spotify/kafka kafka/
     docker build -t spotify/kafkaproxy kafkaproxy/
+    docker build -t spotify/kafkacluster kafkacluster/
 
 Todo
 ---
 
 * Not particularily optimzed for startup time.
 * Better docs
-
