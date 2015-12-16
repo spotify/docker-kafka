@@ -2,10 +2,9 @@
 
 FROM java:openjdk-8-jre
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV SCALA_VERSION 2.11
-ENV KAFKA_VERSION 0.8.2.1
-ENV KAFKA_HOME /opt/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION"
+ENV DEBIAN_FRONTEND=noninteractive \
+  SCALA_VERSION=2.11 \
+  KAFKA_VERSION=0.8.2.1
 
 # Install Kafka, Zookeeper and other needed things
 RUN apt-get update && \
@@ -16,7 +15,7 @@ RUN apt-get update && \
     tar xfz /tmp/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz -C /opt && \
     rm /tmp/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION".tgz
 
-ADD scripts/start-kafka.sh /usr/bin/start-kafka.sh
+ADD scripts/start-kafka.sh scripts/start-zookeeper.sh /usr/bin/
 
 # Supervisor config
 ADD supervisor/kafka.conf supervisor/zookeeper.conf /etc/supervisor/conf.d/
