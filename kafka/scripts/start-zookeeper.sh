@@ -36,6 +36,4 @@ if [ -z ${ZOOKEEPER_SERVERS} ]; then
   done
 fi
 
-cat /etc/alternatives/zookeeper-conf/zoo.cfg
-
 /usr/share/zookeeper/bin/zkServer.sh start-foreground

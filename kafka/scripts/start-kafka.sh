@@ -7,9 +7,14 @@
 # * LOG_RETENTION_HOURS: the minimum age of a log file in hours to be eligible for deletion (default is 168, for 1 week)
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
 # * NUM_PARTITIONS: configure the default number of log partitions per topic
-if [ -z $KAFKA_HOME ]; then
-  KAFKA_HOME=/opt/kafka_"$SCALA_VERSION"-"$KAFKA_VERSION"
+
+KAFKA_HOME=/opt/kafka
+
+if [ -z $KAFKA_LOG_DIRS ]; then
+  KAFKA_LOG_DIRS=/mnt/kafka-logs
 fi
+mkdir -p $KAFKA_LOG_DIRS
+sed -r -i "s/#(log.dirs)=(.*)/${KAFKA_LOG_DIRS}/g" $KAFKA_HOME/config/server.properties
 
 # Configure advertised host/port if we run in helios
 if [ ! -z "$HELIOS_PORT_kafka" ]; then
