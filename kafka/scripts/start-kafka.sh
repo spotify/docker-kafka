@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Optional ENV variables:
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
@@ -7,6 +7,14 @@
 # * LOG_RETENTION_HOURS: the minimum age of a log file in hours to be eligible for deletion (default is 168, for 1 week)
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
 # * NUM_PARTITIONS: configure the default number of log partitions per topic
+
+KAFKA_HOME=/opt/kafka
+
+if [ -z $KAFKA_LOG_DIRS ]; then
+  KAFKA_LOG_DIRS=/mnt/kafka-logs
+fi
+mkdir -p $KAFKA_LOG_DIRS
+sed -r -i "s/#(log.dirs)=(.*)/${KAFKA_LOG_DIRS}/g" $KAFKA_HOME/config/server.properties
 
 # Configure advertised host/port if we run in helios
 if [ ! -z "$HELIOS_PORT_kafka" ]; then
@@ -28,7 +36,7 @@ fi
 if [ ! -z "$ZK_CHROOT" ]; then
     # wait for zookeeper to start up
     until /usr/share/zookeeper/bin/zkServer.sh status; do
-      sleep 0.1
+      sleep 0.5
     done
 
     # create the chroot node
@@ -39,6 +47,11 @@ if [ ! -z "$ZK_CHROOT" ]; then
 
     # configure kafka
     sed -r -i "s/(zookeeper.connect)=(.*)/\1=localhost:2181\/$ZK_CHROOT/g" $KAFKA_HOME/config/server.properties
+fi
+
+if [ ! -z $ZOOKEEPER_SERVERS ]; then
+  # TODO: ZOOKEEPER_SERVERS incompatible with ZK_CHROOT
+  sed -r -i "s/(zookeeper.connect)=(.*)/${ZOOKEEPER_SERVERS}/g" $KAFKA_HOME/config/server.properties
 fi
 
 # Allow specification of log retention policies
