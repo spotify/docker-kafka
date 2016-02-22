@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Optional ENV variables:
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
@@ -8,11 +8,14 @@
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
 # * NUM_PARTITIONS: configure the default number of log partitions per topic
 
-# Configure advertised host/port if we run in helios
-if [ ! -z "$HELIOS_PORT_kafka" ]; then
-    ADVERTISED_HOST=`echo $HELIOS_PORT_kafka | cut -d':' -f 1 | xargs -n 1 dig +short | tail -n 1`
-    ADVERTISED_PORT=`echo $HELIOS_PORT_kafka | cut -d':' -f 2`
-fi
+function add_config_param {
+    echo "$1: $2"
+    if grep -q $1 $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s|($1)=(.*)|\1=$2|g" $KAFKA_HOME/config/server.properties
+    else
+        echo "$1=$2" >> $KAFKA_HOME/config/server.properties
+    fi
+}
 
 # Set the external host and port
 if [ ! -z "$ADVERTISED_HOST" ]; then
@@ -61,6 +64,30 @@ fi
 if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable: $AUTO_CREATE_TOPICS"
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
+fi
+
+## SSL
+# add_config_param "security.inter.broker.protocol" "SSL"
+add_config_param "ssl.enabled.protocols" "TLSv1.2,TLSv1.1,TLSv1"
+
+add_config_param "listeners" "PLAINTEXT://:$ADVERTISED_PORT,SSL://:9093"
+add_config_param "advertised.listeners" "PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT,SSL://$ADVERTISED_HOST:9093"
+
+# Configure SSL Location
+if [ ! -z "$SSL_KEYSTORE_LOCATION" ]; then
+    add_config_param "ssl.keystore.location" $SSL_KEYSTORE_LOCATION
+    add_config_param "ssl.keystore.password" "changeit"
+fi
+
+# Configure SSL Truststore
+if [ ! -z "$SSL_TRUSTSTORE_LOCATION" ]; then
+    add_config_param "ssl.truststore.location" $SSL_TRUSTSTORE_LOCATION
+    add_config_param "ssl.truststore.password" "changeit"
+fi
+
+# Configure auth
+if [ ! -z "$SSL_CLIENT_AUTH" ]; then
+    add_config_param "ssl.client.auth" $SSL_CLIENT_AUTH
 fi
 
 # Run Kafka
