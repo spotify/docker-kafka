@@ -23,6 +23,7 @@ if [ ! -z "$ADVERTISED_HOST" ]; then
     sed -r -i "s/#(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
 fi
 if [ ! -z "$ADVERTISED_PORT" ]; then
+    add_config_param "port" $ADVERTISED_PORT
     echo "advertised port: $ADVERTISED_PORT"
     sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
 fi
@@ -70,8 +71,8 @@ fi
 # add_config_param "security.inter.broker.protocol" "SSL"
 add_config_param "ssl.enabled.protocols" "TLSv1.2,TLSv1.1,TLSv1"
 
-add_config_param "listeners" "PLAINTEXT://:$ADVERTISED_PORT,SSL://:9093"
-add_config_param "advertised.listeners" "PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT,SSL://$ADVERTISED_HOST:9093"
+add_config_param "listeners" "PLAINTEXT://:$ADVERTISED_PORT,SSL://:$ADVERTISED_SSL_PORT"
+add_config_param "advertised.listeners" "PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT,SSL://$ADVERTISED_HOST:$ADVERTISED_SSL_PORT"
 
 # Configure SSL Location
 if [ ! -z "$SSL_KEYSTORE_LOCATION" ]; then

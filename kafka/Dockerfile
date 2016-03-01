@@ -22,6 +22,5 @@ ADD scripts/start-kafka.sh /usr/bin/start-kafka.sh
 ADD supervisor/kafka.conf supervisor/zookeeper.conf /etc/supervisor/conf.d/
 
 # 2181 is zookeeper, 9092 is kafka
-EXPOSE 2181 9092
 
 CMD ["supervisord", "-n"]
