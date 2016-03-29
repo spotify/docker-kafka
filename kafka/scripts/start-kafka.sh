@@ -68,8 +68,12 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
 fi
 
 ## SSL
-# add_config_param "security.inter.broker.protocol" "SSL"
+add_config_param "security.inter.broker.protocol" "SSL"
 add_config_param "ssl.enabled.protocols" "TLSv1.2,TLSv1.1,TLSv1"
+
+if [ ! -z "$SUPER_USERS" ]; then
+    add_config_param "super.users" $SUPER_USERS
+fi
 
 add_config_param "listeners" "PLAINTEXT://:$ADVERTISED_PORT,SSL://:$ADVERTISED_SSL_PORT"
 add_config_param "advertised.listeners" "PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT,SSL://$ADVERTISED_HOST:$ADVERTISED_SSL_PORT"
@@ -89,6 +93,9 @@ fi
 # Configure auth
 if [ ! -z "$SSL_CLIENT_AUTH" ]; then
     add_config_param "ssl.client.auth" $SSL_CLIENT_AUTH
+    add_config_param "authorizer.class.name" "kafka.security.auth.SimpleAclAuthorizer"
+
+    sed -r -i "s|(log4j.logger.kafka.authorizer.logger)=(.*)|\1=DEBUG, authorizerAppender|g" $KAFKA_HOME/config/log4j.properties
 fi
 
 # Run Kafka
