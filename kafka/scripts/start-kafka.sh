@@ -8,6 +8,31 @@
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
 # * NUM_PARTITIONS: configure the default number of log partitions per topic
 
+set -x
+
+##
+# Function to create Kafka topics
+#
+# --License notice--
+# Some of the code in this function is copied from
+# https://github.com/wurstmeister/kafka-docker/blob/master/start-kafka.sh
+# under ASL v2 license.
+create_topics() {
+    if [ -z "$KAFKA_CREATE_TOPICS" ]; then
+        return 0
+    fi
+
+    # Wait for Kafka to come online
+    while netstat -lnt | awk '$4 ~ /:9092$/ {exit 1}'; do sleep 1; done
+
+    # Create topics as configured
+    IFS=','; for topicToCreate in $KAFKA_CREATE_TOPICS; do
+        IFS=':' read -a topicConfig <<< "$topicToCreate"
+        $KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor ${topicConfig[2]} --partition ${topicConfig[1]} --topic "${topicConfig[0]}"
+        echo "created topic: ${topicConfig[0]}"
+    done
+}
+
 # Configure advertised host/port if we run in helios
 if [ ! -z "$HELIOS_PORT_kafka" ]; then
     ADVERTISED_HOST=`echo $HELIOS_PORT_kafka | cut -d':' -f 1 | xargs -n 1 dig +short | tail -n 1`
@@ -63,22 +88,8 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
 
+create_topics &
+
 # Run Kafka
-$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &
-KAFKA_SERVER_PID=$!
+exec bash $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
 
-### START LICENSED CODE ###
-# The following is copied from https://github.com/wurstmeister/kafka-docker/blob/master/start-kafka.sh
-# under ASL v2 license
-while netstat -lnt | awk '$4 ~ /:9092$/ {exit 1}'; do sleep 1; done
-
-# Create topics as configured
-if [[ -n $KAFKA_CREATE_TOPICS ]]; then
-    IFS=','; for topicToCreate in $KAFKA_CREATE_TOPICS; do
-        IFS=':' read -a topicConfig <<< "$topicToCreate"
-        $KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor ${topicConfig[2]} --partition ${topicConfig[1]} --topic "${topicConfig[0]}"
-    done
-fi
-
-wait $KAFKA_SERVER_PID
-### END LICENSED CODE ###
