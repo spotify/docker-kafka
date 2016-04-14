@@ -66,7 +66,7 @@ fi
 # Enable/disable log cleaner
 if [ ! -z "$LOG_CLEANER_ENABLE" ]; then
     echo "log.cleaner.enable: $LOG_CLEANER_ENABLE"
-    sed -r -i "s/(log.cleaner.enable)=(.*)/\1=$LOG_CLEANER_ENABLE/g" $KAFKA_HOME/config/server.properties
+    sed -r -i "s/^(log.cleaner.enable)=(.*)/\1=$LOG_CLEANER_ENABLE/g" $KAFKA_HOME/config/server.properties
 fi
 
 # Run Kafka
