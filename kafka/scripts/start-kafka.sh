@@ -63,5 +63,11 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
 
+# Enable/disable log cleaner
+if [ ! -z "$LOG_CLEANER_ENABLE" ]; then
+    echo "log.cleaner.enable: $LOG_CLEANER_ENABLE"
+    sed -r -i "s/(log.cleaner.enable)=(.*)/\1=$LOG_CLEANER_ENABLE/g" $KAFKA_HOME/config/server.properties
+fi
+
 # Run Kafka
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
