@@ -67,6 +67,8 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
 
+# sed -r -i "s|(log4j.logger.kafka)=(.*)|\1=DEBUG, kafkaAppender|g" $KAFKA_HOME/config/log4j.properties
+
 ## SSL
 add_config_param "security.inter.broker.protocol" "SSL"
 add_config_param "ssl.enabled.protocols" "TLSv1.2,TLSv1.1,TLSv1"
@@ -96,6 +98,12 @@ if [ ! -z "$SSL_CLIENT_AUTH" ]; then
     add_config_param "authorizer.class.name" "kafka.security.auth.SimpleAclAuthorizer"
 
     sed -r -i "s|(log4j.logger.kafka.authorizer.logger)=(.*)|\1=DEBUG, authorizerAppender|g" $KAFKA_HOME/config/log4j.properties
+fi
+
+# OCSP
+if [ ! -z "$SSL_OCSP" ]; then
+    echo -e "ocsp.enable=true\nocsp.responderURL=http://localhost:8000" > $KAFKA_HOME/config/security.properties
+    export KAFKA_OPTS="-Djava.security.debug=all -Dcom.sun.security.enableCRLDP=true -Dcom.sun.net.ssl.checkRevocation=true -Djava.security.properties=$KAFKA_HOME/config/security.properties $KAFKA_OPTS"
 fi
 
 # Run Kafka
