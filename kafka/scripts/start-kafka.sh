@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Optional ENV variables:
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
@@ -8,11 +8,14 @@
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
 # * NUM_PARTITIONS: configure the default number of log partitions per topic
 
-# Configure advertised host/port if we run in helios
-if [ ! -z "$HELIOS_PORT_kafka" ]; then
-    ADVERTISED_HOST=`echo $HELIOS_PORT_kafka | cut -d':' -f 1 | xargs -n 1 dig +short | tail -n 1`
-    ADVERTISED_PORT=`echo $HELIOS_PORT_kafka | cut -d':' -f 2`
-fi
+function add_config_param {
+    echo "$1: $2"
+    if grep -q $1 $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s|($1)=(.*)|\1=$2|g" $KAFKA_HOME/config/server.properties
+    else
+        echo "$1=$2" >> $KAFKA_HOME/config/server.properties
+    fi
+}
 
 # Set the external host and port
 if [ ! -z "$ADVERTISED_HOST" ]; then
@@ -20,6 +23,7 @@ if [ ! -z "$ADVERTISED_HOST" ]; then
     sed -r -i "s/#(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
 fi
 if [ ! -z "$ADVERTISED_PORT" ]; then
+    add_config_param "port" $ADVERTISED_PORT
     echo "advertised port: $ADVERTISED_PORT"
     sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
 fi
@@ -61,6 +65,45 @@ fi
 if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable: $AUTO_CREATE_TOPICS"
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
+fi
+
+# sed -r -i "s|(log4j.logger.kafka)=(.*)|\1=DEBUG, kafkaAppender|g" $KAFKA_HOME/config/log4j.properties
+
+## SSL
+add_config_param "security.inter.broker.protocol" "SSL"
+add_config_param "ssl.enabled.protocols" "TLSv1.2,TLSv1.1,TLSv1"
+
+if [ ! -z "$SUPER_USERS" ]; then
+    add_config_param "super.users" $SUPER_USERS
+fi
+
+add_config_param "listeners" "PLAINTEXT://:$ADVERTISED_PORT,SSL://:$ADVERTISED_SSL_PORT"
+add_config_param "advertised.listeners" "PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT,SSL://$ADVERTISED_HOST:$ADVERTISED_SSL_PORT"
+
+# Configure SSL Location
+if [ ! -z "$SSL_KEYSTORE_LOCATION" ]; then
+    add_config_param "ssl.keystore.location" $SSL_KEYSTORE_LOCATION
+    add_config_param "ssl.keystore.password" "changeit"
+fi
+
+# Configure SSL Truststore
+if [ ! -z "$SSL_TRUSTSTORE_LOCATION" ]; then
+    add_config_param "ssl.truststore.location" $SSL_TRUSTSTORE_LOCATION
+    add_config_param "ssl.truststore.password" "changeit"
+fi
+
+# Configure auth
+if [ ! -z "$SSL_CLIENT_AUTH" ]; then
+    add_config_param "ssl.client.auth" $SSL_CLIENT_AUTH
+    add_config_param "authorizer.class.name" "kafka.security.auth.SimpleAclAuthorizer"
+
+    sed -r -i "s|(log4j.logger.kafka.authorizer.logger)=(.*)|\1=DEBUG, authorizerAppender|g" $KAFKA_HOME/config/log4j.properties
+fi
+
+# OCSP
+if [ ! -z "$SSL_OCSP" ]; then
+    echo -e "ocsp.enable=true\nocsp.responderURL=http://localhost:8000" > $KAFKA_HOME/config/security.properties
+    export KAFKA_OPTS="-Djava.security.debug=all -Dcom.sun.security.enableCRLDP=true -Dcom.sun.net.ssl.checkRevocation=true -Djava.security.properties=$KAFKA_HOME/config/security.properties $KAFKA_OPTS"
 fi
 
 # Run Kafka
