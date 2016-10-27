@@ -17,12 +17,17 @@ fi
 # Set the external host and port
 if [ ! -z "$ADVERTISED_HOST" ]; then
     echo "advertised host: $ADVERTISED_HOST"
-    sed -r -i "s/#(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
+    #sed -r -i "s/#(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
+    if [ -z "$ADVERTISED_PORT" ]; then
+      sed -r -i "s/#(advertised.listeners)=(PLAINTEXT:\/\/)([^:]*)(:[0-9]*)/\1=\2${ADVERTISED_HOST}\4/g" $KAFKA_HOME/config/server.properties
+    else
+      sed -r -i "s/#(advertised.listeners)=(PLAINTEXT:\/\/)([^:]*)(:[0-9]*)/\1=\2${ADVERTISED_HOST}:${ADVERTISED_PORT}/g" $KAFKA_HOME/config/server.properties
+    fi
 fi
-if [ ! -z "$ADVERTISED_PORT" ]; then
-    echo "advertised port: $ADVERTISED_PORT"
-    sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
-fi
+# if [ ! -z "$ADVERTISED_PORT" ]; then
+#     echo "advertised port: $ADVERTISED_PORT"
+#     sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
+# fi
 
 # Set the zookeeper chroot
 if [ ! -z "$ZK_CHROOT" ]; then
