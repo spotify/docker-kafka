@@ -71,5 +71,9 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
 
+if [ -e /tmp/kafka-custom.sh ]; then
+  sh /tmp/kafka-custom.sh
+fi
+
 # Run Kafka
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
