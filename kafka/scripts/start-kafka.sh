@@ -3,6 +3,7 @@
 # Optional ENV variables:
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
 # * ADVERTISED_PORT: the external port for Kafka, e.g. 9092
+# * LISTENERS: configure the listener list e.g. "PLAINTEXT://:9092"
 # * ZK_CHROOT: the zookeeper chroot that's used by Kafka (without / prefix), e.g. "kafka"
 # * LOG_RETENTION_HOURS: the minimum age of a log file in hours to be eligible for deletion (default is 168, for 1 week)
 # * LOG_RETENTION_BYTES: configure the size at which segments are pruned from the log, (default is 1073741824, for 1GB)
@@ -29,6 +30,16 @@ if [ ! -z "$ADVERTISED_PORT" ]; then
         sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
     else
         echo "advertised.port=$ADVERTISED_PORT" >> $KAFKA_HOME/config/server.properties
+    fi
+fi
+
+# Set the listener list
+if [ ! -z "$LISTENERS" ]; then
+    echo "listeners : $LISTENERS"
+    if grep -q "^listeners" $KAFKA_HOME/config/server.properties; then
+        sed -r -i "s/#(listeners)=(.*)/\1=$(echo $LISTENERS | sed -e 's/[\/&]/\\&/g')/g" $KAFKA_HOME/config/server.properties
+    else
+        echo "listeners=$LISTENERS" >> $KAFKA_HOME/config/server.properties
     fi
 fi
 
