@@ -15,6 +15,10 @@ if [ ! -z "$HELIOS_PORT_kafka" ]; then
 fi
 
 # Set the external host and port
+if [ -z "$ADVERTISED_HOST" ]; then
+    ADVERTISED_HOST=`route -n | awk '/UG[ \t]/{print $2}'`
+fi
+
 if [ ! -z "$ADVERTISED_HOST" ]; then
     echo "advertised host: $ADVERTISED_HOST"
     if grep -q "^advertised.host.name" $KAFKA_HOME/config/server.properties; then
@@ -23,6 +27,7 @@ if [ ! -z "$ADVERTISED_HOST" ]; then
         echo "advertised.host.name=$ADVERTISED_HOST" >> $KAFKA_HOME/config/server.properties
     fi
 fi
+
 if [ ! -z "$ADVERTISED_PORT" ]; then
     echo "advertised port: $ADVERTISED_PORT"
     if grep -q "^advertised.port" $KAFKA_HOME/config/server.properties; then
@@ -70,6 +75,8 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable: $AUTO_CREATE_TOPICS"
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
+
+create-topics.sh &
 
 # Run Kafka
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
