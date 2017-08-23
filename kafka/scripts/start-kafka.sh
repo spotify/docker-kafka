@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Optional ENV variables:
+# * ALLOW_DELETE_TOPICS: adds delete.topic.enable=true to server.properties
 # * ADVERTISED_HOST: the external ip for the container, e.g. `docker-machine ip \`docker-machine active\``
 # * ADVERTISED_PORT: the external port for Kafka, e.g. 9092
 # * ZK_CHROOT: the zookeeper chroot that's used by Kafka (without / prefix), e.g. "kafka"
@@ -70,6 +71,14 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
     echo "auto.create.topics.enable: $AUTO_CREATE_TOPICS"
     echo "auto.create.topics.enable=$AUTO_CREATE_TOPICS" >> $KAFKA_HOME/config/server.properties
 fi
+
+# Enable/disable topics deletion 
+if [ ! -z "$ALLOW_DELETE_TOPICS" ]; then
+     echo "delete.topic.enable: $ALLOW_DELETE_TOPICS"
+     echo "delete.topic.enable=$ALLOW_DELETE_TOPICS" >> $KAFKA_HOME/config/server.properties 
+fi
+
+
 
 # Run Kafka
 $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
