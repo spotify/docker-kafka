@@ -17,18 +17,11 @@ fi
 # Set the external host and port
 if [ ! -z "$ADVERTISED_HOST" ]; then
     echo "advertised host: $ADVERTISED_HOST"
-    if grep -q "^advertised.host.name" $KAFKA_HOME/config/server.properties; then
-        sed -r -i "s/#(advertised.host.name)=(.*)/\1=$ADVERTISED_HOST/g" $KAFKA_HOME/config/server.properties
+    if grep -q "^advertised.listeners" $KAFKA_HOME/config/server.properties; then
+        # DIL 2017-10-13 I have no idea why this sed command does not modify the file when run from this script...
+        sed -r -i "s/(advertised\.listeners)=(.*)/\1=PLAINTEXT:\/\/$ADVERTISED_HOST:$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
     else
-        echo "advertised.host.name=$ADVERTISED_HOST" >> $KAFKA_HOME/config/server.properties
-    fi
-fi
-if [ ! -z "$ADVERTISED_PORT" ]; then
-    echo "advertised port: $ADVERTISED_PORT"
-    if grep -q "^advertised.port" $KAFKA_HOME/config/server.properties; then
-        sed -r -i "s/#(advertised.port)=(.*)/\1=$ADVERTISED_PORT/g" $KAFKA_HOME/config/server.properties
-    else
-        echo "advertised.port=$ADVERTISED_PORT" >> $KAFKA_HOME/config/server.properties
+        echo "advertised.listeners=PLAINTEXT://$ADVERTISED_HOST:$ADVERTISED_PORT" >> $KAFKA_HOME/config/server.properties
     fi
 fi
 
