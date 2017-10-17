@@ -21,7 +21,14 @@ ADD scripts/start-kafka.sh /usr/bin/start-kafka.sh
 # Supervisor config
 ADD supervisor/kafka.conf supervisor/zookeeper.conf /etc/supervisor/conf.d/
 
-# 2181 is zookeeper, 9093 is kafka
-EXPOSE 2181 9093
+# 2181 is zookeeper, 9092 or 9093 is kafka
+# Because of Kafka metadata announcement, the internal port must be equal to the mapped external port.
+# In development environment, multiple Kafkas must be mapped to different ports.
+# So, we expose all ports that are used in any of our Kafka instances.
+# A Kafka container will be configured to bind to its port via a mounted config file.
+# The other exposed Kafka ports are not bound by the container and cannot be connected.
+# This is a pretty ugly hack but fits best into our deploy environment.
+# Other possible hacks are even worse.
+EXPOSE 2181 9092 9093
 
 CMD ["supervisord", "-n"]
