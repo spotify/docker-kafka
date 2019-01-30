@@ -27,9 +27,10 @@ export KAFKA=`docker-machine ip \`docker-machine active\``:9092
 kafka-console-producer.sh --broker-list $KAFKA --topic test
 ```
 
+NOTE: --zookeeper option has been deprecated.
 ```bash
-export ZOOKEEPER=`docker-machine ip \`docker-machine active\``:2181
-kafka-console-consumer.sh --zookeeper $ZOOKEEPER --topic test
+export KAFKA=`docker-machine ip \`docker-machine active\``:9092
+kafka-console-consumer.sh --bootstrap-server $KAFKA --topic test
 ```
 
 Running the proxy
@@ -80,6 +81,6 @@ Build from Source
 Todo
 ---
 
-* Not particularily optimzed for startup time.
+* Not particularily optimized for startup time.
 * Better docs
 
