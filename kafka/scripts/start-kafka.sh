@@ -72,4 +72,4 @@ if [ ! -z "$AUTO_CREATE_TOPICS" ]; then
 fi
 
 # Run Kafka
-$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
+exec $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
